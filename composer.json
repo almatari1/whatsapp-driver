@@ -1,0 +1,47 @@
+{
+    "name": "malmatari/whatsapp-driver",
+    "description": "Whatsapp Messenger driver for BotMan",
+    "keywords": [
+        "botman",
+        "driver-whatsapp"
+    ],
+
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Maher almatari",
+            "email": "maheralmatri@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1",
+        "botman/botman": "^2.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "Malmatari\\Drivers\\Whatsapp\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Malmatari\\Drivers\\Whatsapp\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Malmatari\\Drivers\\Whatsapp\\Providers\\WhatsappServiceProvider"
+            ]
+
+        }
+    }
+}

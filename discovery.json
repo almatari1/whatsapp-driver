@@ -1,0 +1,12 @@
+{
+    "botman/driver-config": [
+        "stubs/whatsapp.php"
+    ],
+    "botman/driver": [
+        "Maheralmatari\\Drivers\\Whatsapp\\WhatsappDriver",
+        "Maheralmatari\\Drivers\\Whatsapp\\WhatsappImageDriver",
+        "Maheralmatari\\Drivers\\Whatsapp\\WhatsappLocationDriver"
+
+    ]
+
+}
