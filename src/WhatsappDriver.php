@@ -19,7 +19,6 @@ use Symfony\Component\HttpFoundation\Response;
 use BotMan\BotMan\Messages\Outgoing\OutgoingMessage;
 use BotMan\BotMan\Messages\Outgoing\Question;
 use BotMan\BotMan\Drivers\Events\GenericEvent;
-use Illuminate\Support\Facades\Log;
 use  Malmatari\Drivers\Whatsapp\Events\Delivered;
 use  Malmatari\Drivers\Whatsapp\Events\Sent;
 use  Malmatari\Drivers\Whatsapp\Events\Viewed;
@@ -57,7 +56,7 @@ class WhatsappDriver extends HttpDriver
 
             return (isset($msg['type'])) && $msg['type'] === 'chat';
         });
-        return ! $messages->isEmpty() ;
+        return !$messages->isEmpty();
     }
 
     /**
@@ -167,17 +166,17 @@ class WhatsappDriver extends HttpDriver
         return !empty($this->config->get('url')) && !empty($this->config->get('token'));
     }
 
-    /**
-     * Retrieve User information.
-     * @param IncomingMessage $matchingMessage
-     * @return UserInterface
-     */
-    public function getUser(IncomingMessage $matchingMessage)
-    {
+    // /**
+    //  * Retrieve User information.
+    //  * @param IncomingMessage $matchingMessage
+    //  * @return UserInterface
+    //  */
+    // public function getUser(IncomingMessage $matchingMessage)
+    // {
 
-        return new User($matchingMessage->getSender(), null, null, $matchingMessage->getRecipient());
+    //     return new User($matchingMessage->getSender(), null, null, $matchingMessage->getRecipient());
 
-    }
+    // }
 
     /**
      * @param IncomingMessage $message
@@ -203,7 +202,7 @@ class WhatsappDriver extends HttpDriver
 
             if ($attachment instanceof Image || $attachment instanceof Video || $attachment instanceof  File) {
                 $this->endpoint = 'sendFile';
-               if ($attachment->getTitle() == "Visit Website"){
+                if ($attachment->getTitle() == "Visit Website") {
                     $this->endpoint = 'sendLinkPreview';
                     $payload =   [
                         'chatId' => $matchingMessage->getRecipient(),
@@ -211,9 +210,8 @@ class WhatsappDriver extends HttpDriver
                         "text" => ""
                     ];
                     return    $payload;
-
-               }
-             $payload =   [
+                }
+                $payload =   [
                     'chatId' => $matchingMessage->getRecipient(),
 
                     'body' =>  $attachment->getUrl(),
@@ -221,8 +219,8 @@ class WhatsappDriver extends HttpDriver
                     "caption" =>  $attachment->getTitle()
                 ];
 
-                return    $payload ;
-            }  elseif ($attachment instanceof Location) {
+                return    $payload;
+            } elseif ($attachment instanceof Location) {
                 $this->endpoint = 'sendLocation';
                 $payload =   [
                     'chatId' => $matchingMessage->getRecipient(),
@@ -230,10 +228,8 @@ class WhatsappDriver extends HttpDriver
                     "lng" => $attachment->getLongitude(),
                     "address" =>  ""
                 ];
-                return    $payload ;
-
-            }
-            else {
+                return    $payload;
+            } else {
                 return   [
                     'chatId' => $matchingMessage->getRecipient(),
                     'body' =>   $message->getText()
@@ -241,16 +237,16 @@ class WhatsappDriver extends HttpDriver
                 ];
             }
         } elseif ($message instanceof Question) {
-              if(count($message->getButtons()) > 0 ){
+            if (count($message->getButtons()) > 0) {
                 return  [
-                            'chatId' => $matchingMessage->getRecipient(),
-                            'body'  => $this->convertQuestion($message)
+                    'chatId' => $matchingMessage->getRecipient(),
+                    'body'  => $this->convertQuestion($message)
 
-                    ];
-              }
+                ];
+            }
             return    [
-                 'chatId' => $matchingMessage->getRecipient(),
-                 'body'  => $message->getText()
+                'chatId' => $matchingMessage->getRecipient(),
+                'body'  => $message->getText()
             ];
         }
     }
@@ -263,16 +259,14 @@ class WhatsappDriver extends HttpDriver
 
         if ($buttons) {
             $options =  Collection::make($buttons)->transform(function ($button) {
-                return '*' . $button['value'] . '* .'.$button['text'] ;
+                return '*' . $button['value'] . '* .' . $button['text'];
             })->toArray();
 
             return $question->getText() . "\n" . implode("\n", $options)
-            . "\n"
-            . "\n"
-            . "\n"
-            .__('replys.tip')
-
-            ;
+                . "\n"
+                . "\n"
+                . "\n"
+                . __('replys.tip');
         }
     }
 
@@ -326,6 +320,54 @@ class WhatsappDriver extends HttpDriver
 
         return $this->http->post($this->buildApiUrl($endpoint), [], $parameters);
     }
+
+
+
+    /**
+     * @param IncomingMessage $matchingMessage
+     * @return User
+     * @throws TelegramException
+     * @throws TelegramConnectionException
+     */
+    public function getUser(IncomingMessage $matchingMessage)
+    {
+        $parameters = [
+            'chatId' => $matchingMessage->getRecipient(),
+        ];
+
+        $response =    $this->http->post($this->buildApiUrl('getChatById'), [], $parameters);
+
+        $responseData = json_decode($response->getContent(), true);
+
+        // if ($response->getStatusCode() !== 200) {
+        //     throw new TelegramException('Error retrieving user info: ' . $responseData['description']);
+        // }
+
+        $userData = Collection::make($responseData['data']['contact']);
+
+        return new User(
+            $userData->get('id'),
+            $userData->get('shortName'),
+            $userData->get('pushname'),
+            $userData->get('name'),
+            $responseData['data']
+        );
+    }
+
+    /**
+     * @param IncomingMessage $matchingMessage
+     * @return void
+     */
+    public function types(IncomingMessage $matchingMessage)
+    {
+
+        $parameters = [
+            'chatId' => $matchingMessage->getRecipient(),
+            'state' => true,
+        ];
+        return $this->http->post($this->buildApiUrl('typing'), [], $parameters);
+    }
+
 
     /**
      * @param $endpoint
